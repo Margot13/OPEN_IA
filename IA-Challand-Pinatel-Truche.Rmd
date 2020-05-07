@@ -1,7 +1,7 @@
 ---
 title: "Rapport IA sur la reconnaissance d'images"
 author: "Perrine Truche, Anne Pinatel, Margot Challand"
-date: "06/05/2020"
+date: "07/05/2020"
 output:
   pdf_document:
     toc: yes
@@ -40,3 +40,8 @@ Cette deuxième image reflète ce que le programme a reconnu. On remarque donc q
 ```{r echo=F, out.width='50%', fig.align='center'}
 knitr::include_graphics('appartenance_animaux.png')
 ```
+
+
+## Remarques sur la constitution du corpus d'apprentissage
+
+## Remarques sur la création de votre réseau neuronal et sa performance
