@@ -1,14 +1,14 @@
 ---
 title: "Rapport IA sur la reconnaissance d'images"
 author: "Perrine Truche, Anne Pinatel, Margot Challand"
-date: "07/05/2020"
+date: "11/05/2020"
 output:
   pdf_document:
     toc: yes
     toc_depth: 3
 
 ---
-# **1- Essais**
+# *1- Essais*
 
 ## *1.1- Domaine*
 
@@ -16,7 +16,7 @@ Nous avons choisi pour nos essais d'intelligence artificielle de tester la recon
 
 ## *1.2- Catégories*
 
-Nous avons fait le choix de tester les catégories suivantes : abeilles, .... .
+Nous avons fait le choix de tester les catégories suivantes : abeilles, éléphant, gazelle, giraffe, hyppopotame, léopard, lion, singe et rhinocéros.
 
 
 ## *1.3- Remarques sur la constitution du corpus d'apprentissage*
@@ -57,24 +57,130 @@ knitr::include_graphics('appartenance_animaux.png')
 
 # **2- Etude de réseaux neuronaux à partir de graphique**
 
+Il nous a été demandé d'analyser un jeu de données sur de la reconnaissance d'images. Ce tableau de 9 variables reprend les différents facteurs qui vont nous permettre d'obtenir un pourcentage de réussite au test de reconnaissance par la machine. Un pourcentage élevé signifie que le test de reconnaissance est réussi en fonction de ce qui est cherché et ce qui est attendu. 
+Afin d'expliquer de quoi dépend le pourcentage de réussite, nous avons décidé de tester séparément y en fonction de x, x étant chaque facteur : Nombre de neurones / Nombre d'images à l'entrainement / Nombre de passes.
+Si l'on prend chaque facteur individuellement, nous souhaiterons obtenir logiquement une régression linéaire positive. En effet, on peut se dire que plus le nombre de neurones est important, mieux sera la réussite. 
+Nous obtenons donc les graphiques suivants :
 
 ```{r datatemp1, echo = FALSE,eval=TRUE}
-raw <- read.csv("../IsaraS8OpenDeepLearning/models.csv",
+library(ggplot2)
+
+library("gridExtra")
+graph <- read.csv("../IsaraS8OpenDeepLearning/models.csv",
                 sep=",",
                 col.names = c(rep("numeric",2), "character", rep("numeric",2), "character", rep("numeric",2)),
                 na.strings="NA")
-names(raw) <- c("Nbr_classes", "Nbr_neurones", "Dataset_entrainement", "Nbr_images_entrainement", "Nbr_passes", "Dataset_test", "Nbr_images_test","Pourcentage_reussite")
-raw$Factor<-paste(raw$Nbr_neurones, raw$Dataset_entrainement)
+names(graph) <- c("Nbr_classes", "Nbr_neurones", "Dataset_entrainement", "Nbr_images_entrainement", "Nbr_passes", "Dataset_test", "Nbr_images_test","Pourcentage_reussite")
+graph$Factor<-paste(graph$Nbr_neurones, graph$Dataset_entrainement)
+#On cocatene : Nombres de neuronnes et data set entrainement 
+graph$Nombre_neurones_et_images<-paste(graph$Nbr_neurones, graph$Dataset_entrainement)
 ```
 
 
-```{r fig.width=7, fig.height=4, echo=FALSE, Warning=FALSE}
-library(ggplot2)
-qplot(Nbr_passes, Pourcentage_reussite, data = raw, color=Factor, geom = c("line"))
+```{r fig.width=7, fig.height=4, echo=FALSE}
+
+
+graph1 <- qplot(Nbr_neurones, Pourcentage_reussite, data = graph, geom = "auto", 
+      xlim = c(0,550), 
+      ylim = c(0,75), 
+      main = "% Réussite en fonction \n du nombre de neurones",
+      xlab = "Nombre de neurones",
+      ylab = "Pourcentage de reussite au test") + theme(
+   plot.title = element_text(color="#990000", size=10, face="bold"),  
+   axis.title.x = element_text(color="#333000", size=9),
+   axis.title.y = element_text(color="#333000", size=10)) + geom_point(color='#990000')
+
+
+#2 Pourcentage de réussite en fonction du nombre d'image à l'entrainement 
+
+graph2<- qplot(Nbr_images_entrainement, Pourcentage_reussite, data = graph, geom = "auto", 
+      xlim = c(0,2000), 
+      ylim = c(0,75), 
+      main = "% Réussite en fonction \n du nombre images à l'entrainement",
+      xlab = "Nombre d'images à l'entrainement",
+      ylab = "Pourcentage de reussite au test")+ theme(
+   plot.title = element_text(color="#330066", size=10, face="bold"),
+   axis.title.x = element_text(color="#333000", size=9),
+   axis.title.y = element_text(color="#333000", size=10)) + geom_point(color='#330066')
+
+#3 Pourcentage de réussite en fonction du nombre de passe
+
+graph3 <- qplot(Nbr_passes, Pourcentage_reussite, data = graph, geom = "auto", 
+      xlim = c(0,70), 
+      ylim = c(0,75), 
+      main = "% Réussite en fonction \n du nombre de passes",
+      xlab = "Nombre de passes",
+      ylab = "Pourcentage de réussite au test") + theme(
+   plot.title = element_text(color="#006600", size=10, face="bold"),
+   axis.title.x = element_text(color="#333000", size=9),
+   axis.title.y = element_text(color="#333000", size=10))+ geom_point(color='#006600')
 ```
 
+```{r fig.width=10, fig.height=6, echo=FALSE}
 
-# **3- Remarques sur le module**
+#Combiner plusieurs graphiques sur la même page
+
+
+grid.arrange(graph1,graph2,graph3, ncol=3)
+
+png("Combiné.png", width = 1200, height = 500)
+#Ce qu'on remarque c'est qu'il n'y a pas un modele parfait. Tous les facteurs interagisse entre eux  
+# Pour faire interagir les trois facteurs : Neurones / Passes / Nbrs d'images --> on concatene
+# Or on ne peut pas concatener : neurones et nbr d'image vu que ce sont deux numériques 
+# Mais le dataset_entrainement correspond à un nombre d'image de l'entrainement 
+# Catdog = 1589 images 
+# Savane50 = 334 images
+# Savane 100 = 693 images 
+# On va donc pouvoir concatener un numérique et un non numérique pour expliquer les différents facteurs 
+
+
+```
+
+Ce qu'on peut remarquer en premier lieu, c'est qu'il n'y a aucune tendance qui se dégage dans les trois graphiques. Nous pouvons donc dire que le pourcentage de réussite n'est pas le résultat d'un facteur, mais qu'il s'agit bien d'une intéraction entre les trois facteurs étudiés. Il faut donc exprimer le pourcentage de réussite en fonction de ces 3 facteurs. 
+Nous avons de choisi de générer un graphique qui permettrait de montrer l’influence de 3 facteurs différents sur le pourcentage de réussite. Ces trois facteurs sont les suivants : le nombre d’images à l’entrainement, le nombre de neurones et le nombre de passes.
+Pour arriver à tous les représenter sur un même graphique, nous avons choisi de concaténer les colonnes nombre_de_neurones et dataset_entrainement afin de mettre en relation les facteurs nombre d’images à l’entrainement et nombre de neurones. On observe alors sur le graphique 4 courbes représentant les 4 combinaisons possibles de ces deux facteurs : 128 catdog, 128 savane100, 128 savane50, 512 savane100. Pour chacune d’elle on observe l’évolution du pourcentage de réussite en fonction du nombre de passes. 
+ 
+	
+	
+```{r fig.width=7, fig.height=4, echo=FALSE}
+
+
+
+#On peut faire le graphique pour voir l'interaction des paramètres 
+
+
+
+qplot(Nbr_passes, Pourcentage_reussite, data = graph, color=Nombre_neurones_et_images, geom = c("point", "line"),  
+      main = "Pourcentage de reussite en fonction du nombre de passes",
+      xlab = "Nombre de passes",
+      ylab = "Pourcentage de réussite au test") + theme(
+   plot.title = element_text(color="#333333", size=16, face="bold"),
+   axis.title.x = element_text(color="#333333", size=14),
+   axis.title.y = element_text(color="#333333", size=14))
+
+png("Pourcentage_de_reussite.png", width = 800, height = 600)
+```
+
+Nous pouvons observer que les réseaux neuronaux créés à partir du jeu de données catdog contenant 1 589 images et ayant 128 neurones ont un taux de réussite qui varie entre 63% et 72%. Ces réseaux neuronaux permettent d’obtenir de meilleurs pourcentages de réussite que les réseaux neuronaux entrainés avec les jeux de donnée Savane. Cela peut s’expliquer par le fait que le nombre d’images analysées est beaucoup plus important, mais aussi par le faible nombre de catégories à distinguer. Nous pouvons donc en déduire que pour entrainer un réseau neuronal à reconnaitre peu de catégories, il est plus intéressant d’utiliser un jeu de donnée contenant un nombre d’images plus important. 
+
+Le jeu de données Savane50 contient 50% des images du jeu de données Savane100. On observe que les réseaux neuronaux entrainés avec le jeu de donnée Savane50 ont un pourcentage de réussite qui varie entre 60% et 51%. Ces résultats sont bien meilleurs que ceux des réseaux neuronaux entrainés avec le jeu de donnée Savane100 (pourcentage de réussite compris entre 6% et 10%). Nous pouvons en déduire que lorsqu’on veut entrainer un réseau neuronal à reconnaitre beaucoup de catégories, il est plus intéressant de l’entrainer avec un jeu de données comportant moins d’images. 
+
+Nous remarquons également que le nombre de neurones ne permet pas forcément d’obtenir de meilleurs pourcentages. En effet, les réseaux contenant le plus de neurones (512) obtiennent des taux de réussite inférieurs à 10%.
+
+Enfin, nous pouvons observer qu’augmenter le nombre de passes pour entrainer un réseau neuronal analysant peu de catégories lui permet d’être plus performant. 
+
+
+# *3- Remarques sur le module*
+
+Les points forts du  module que nous pouvons notés sont la prise en compte de la multitude de données que nous pouvons manipuler et finalement des fichiers, applications, objets (graphiques...) que nous pouvons créer.
+Ensuite, la distance entre les collègues et les enseignants nous force à chercher par nous même afin de nous débloquer et perdre le moins de temps possible.
+
+On notera alors que ce module nous force à faire preuve d'autonomie et **surtout** d'entraîde.
+
+Les points faibles sont plus de l'ordre de la difficulté à comprendre le codage et la programmation, lorsqu'on est encore novice dans le domaine. En effet avoir un enseignement à distance rend toutes les choses plus compliquées. Enfin, les discussions sur plusieurs plateformes telles que le chat, la visio, les conversions...en même temps rend difficile la compréhension et le focus.
+Toutefois la qualité de la visiocoférence était d'une grande qualité.
+
+
 
 
 
