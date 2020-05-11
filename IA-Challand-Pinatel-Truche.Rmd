@@ -1,0 +1,80 @@
+---
+title: "Rapport IA sur la reconnaissance d'images"
+author: "Perrine Truche, Anne Pinatel, Margot Challand"
+date: "07/05/2020"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+
+---
+# **1- Essais**
+
+## *1.1- Domaine*
+
+Nous avons choisi pour nos essais d'intelligence artificielle de tester la reconnaince des animaux. 
+
+## *1.2- Catégories*
+
+Nous avons fait le choix de tester les catégories suivantes : abeilles, .... .
+
+
+## *1.3- Remarques sur la constitution du corpus d'apprentissage*
+
+La construction d'un corpus d'apprentissage d'images représentative des futures images à reconnaitre se fait en plusieures étapes. 
+Tout d'abord, nous avons utilisé le scrypte `image_search_scraper.py` pour télécharger d'internet 100 images de chacune des catégories que nous avons choisies. Pour cela nous avons modifié la ligne 213 pour y écrire notre propre requête : `query = ["tarte au citron", "tarte à la fraise"]`. Ces photos sont chargées dans notre fichier et dans un dossier intitulé "dataset". 
+Nous avons ensuite passé en revue chaques photos. En effet, les photos téléchargées sont les résultats d'une recherche d'internet, ainsi toutes les photos ne sont pas forcément représentatives de la catégories, il faut donc les supprimer manuellemnet. 
+Nous avons utilisé le script `dataset_splitter.py`. Ce dernier a récupéré les photos contenues dans le fichier "raw_set" et les a réparties aléatoirement dans deux sous-fichiers. Le premier sous-fichier contient 80% des photos du fichier innitial, il s'intitule "training-set" et il sevira à l'apprentissage du réseau neuronal. Le deuxième sous-fichier contient les 20% de photos restantes, il s'intitule "test_set" et servira à tester les réseau neuronal entrainé. 
+
+
+## *1.4- Remarques sur la création d'un réseau neuronal son utilisation et sa performance*
+
+Le scirpt `simple_cnn_menu.py` est l'algorithme qui permet la création et l’apprentissage d’un nouveau réseau neuronal à partir d’un corpus d’apprentissage. On a ensuite, entre autre, la possibilité d’enregistrer le réseau construit dans un fichier, puis de l'utiliser pour déterminer la catégorie d’une image test.
+
+Concrètement ce qu'on fait avec ce programme c'est lui apprendre à reconnaître des images (via son "système neuronal"). Il balaie les images de façon aléatoire, puis s'adapte pour reconnaître des images de catégories différentes en les triant. A la suite de cet apprentissage on lui fait faire des tests statistiques :  à savoir, on lui donne de nouvelles images pour qu'il essaie à nouveau de les reconnaître.
+Dans l'exemple ci-dessous, nous verrons via les pourcentages combien d'images le programme parvient à bien identifier.On lui demande donc ce qu'il a reconnu !
+
+    
+ **Reconnaissance des images**
+
+Nous avons lancé un premier apprentissage à "5 passes" avec le corpus d’apprentissage pour que le réseau neuronal apprenne à différencier les images des catégories du domaine choisi. Nous avons observé que plus on augmente le nombre de passes, plus la création du réseau neuronal prends du temps, mais plus la reconnaissance est précise. Le réseau neuronal devient cependant moins apte à reconnaitre d'autres images. 
+
+Le hasard correspondant à une chance sur deux soit 50%, pour que notre proggrame d'intellignece artificielle soit intéressant, son taux de réussite doit être supérieur à 50% et idéalement tendre vers 100%. 
+
+La figure ci-dessous est une capture d'écran montrant que le programme a reconnu *87%* d'images d'abeilles.
+Ainsi, 87% de reconnaissance sur une diziane de catégories est plutôt bien. En effet, plus on ferait tourner ce programme plus l'analyse serait précise.
+
+```{r echo=F, out.width='50%', fig.align='center'}
+knitr::include_graphics('pourcentage_reconnaissance.png')
+```
+
+Cette deuxième image reflète ce que le programme a reconnu. On remarque donc que la première image a mal été identifié tout comme l'image n°37, n°50,51,58 puis d'autres encore. Les autres images sont correctement reconnues. Cette mauvaise identification peut s'expliquer par des écritures sur l'image, des pixels un peu sombres, des couleurs pas assez marquantes...
+
+```{r echo=F, out.width='50%', fig.align='center'}
+knitr::include_graphics('appartenance_animaux.png')
+```
+
+
+# **2- Etude de réseaux neuronaux à partir de graphique**
+
+
+```{r datatemp1, echo = FALSE,eval=TRUE}
+raw <- read.csv("../IsaraS8OpenDeepLearning/models.csv",
+                sep=",",
+                col.names = c(rep("numeric",2), "character", rep("numeric",2), "character", rep("numeric",2)),
+                na.strings="NA")
+names(raw) <- c("Nbr_classes", "Nbr_neurones", "Dataset_entrainement", "Nbr_images_entrainement", "Nbr_passes", "Dataset_test", "Nbr_images_test","Pourcentage_reussite")
+raw$Factor<-paste(raw$Nbr_neurones, raw$Dataset_entrainement)
+```
+
+
+```{r fig.width=7, fig.height=4, echo=FALSE, Warning=FALSE}
+library(ggplot2)
+qplot(Nbr_passes, Pourcentage_reussite, data = raw, color=Factor, geom = c("line"))
+```
+
+
+# **3- Remarques sur le module**
+
+
+
